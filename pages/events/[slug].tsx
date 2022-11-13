@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaPencilAlt, FaTimes } from "react-icons/fa";
 import DateTime from "@/components/shared/dateTime";
+import * as utils from "@/components//shared/utils/utils";
 
 interface IProps {
   event: IEvent;
@@ -31,17 +32,24 @@ const EventPage: NextPage<IProps> = ({ event }) => {
           </a>
         </div>
         <DateTime event={event} />
-        {event.image && (
+        {event.attributes.image && (
           <div className={styles.img}>
-            <Image src={event.image} width={960} height={600} />
+            <Image
+              src={
+                utils.getCloudinaryImage(event.attributes.image, "large") ??
+                "/images/event-default.png"
+              }
+              width={960}
+              height={600}
+            />
           </div>
         )}
         <h3>Performers:</h3>
-        <p>{event.performers}</p>
+        <p>{event.attributes.performers}</p>
         <h3>Description</h3>
-        <p>{event.description}</p>
-        <h3>Venus: {event.venue}</h3>
-        <p>{event.address}</p>
+        <p>{event.attributes.description}</p>
+        <h3>Venus: {event.attributes.venue}</h3>
+        <p>{event.attributes.address}</p>
 
         <Link href={"/events"}>
           <a className={styles.back}>Go Back</a>
@@ -62,15 +70,13 @@ export async function getServerSideProps({
 }) {
   const { slug } = query;
 
-  const res = await fetch(`${API_URL}/api/events/${slug}`);
+  const res = await fetch(`${API_URL}/events?slug=${slug}&populate=*`);
 
-  const events: IEvent[] = await res.json();
-
-  console.log("events", events);
+  const events: { data: IEvent[] } = await res.json();
 
   return {
     props: {
-      event: events[0]
+      event: { ...events.data[0] }
     }
   };
 }
