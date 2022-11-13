@@ -1,8 +1,10 @@
 import { ReactNode } from "react";
 import Head from "next/head";
-import styles from "../styles/Layout.module.css";
+import styles from "@/styles/Layout.module.css";
 import Header from "./Header";
 import Footer from "./Footer";
+import Showcase from "@/components/Showcase";
+import { useRouter } from "next/router";
 
 interface IProps {
   description?: string;
@@ -12,6 +14,7 @@ interface IProps {
 }
 
 const Layout = ({ description, title, keywords, children }: IProps) => {
+  const router = useRouter();
   return (
     <>
       <Head>
@@ -20,6 +23,7 @@ const Layout = ({ description, title, keywords, children }: IProps) => {
         <meta name={"keywords"} content={keywords} />
       </Head>
       <Header />
+      {router.pathname === "/" && <Showcase />}
       <div className={styles.container}>{children}</div>
       <Footer />
     </>
