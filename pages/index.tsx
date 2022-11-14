@@ -10,7 +10,6 @@ interface IProps {
 }
 
 const HomePage: NextPage<IProps> = ({ events }) => {
-  console.log("events", events);
   return (
     <Layout>
       <h1>Upcoming Events</h1>

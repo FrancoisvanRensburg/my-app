@@ -8,6 +8,7 @@ import Image from "next/image";
 import { FaPencilAlt, FaTimes } from "react-icons/fa";
 import DateTime from "@/components/shared/dateTime";
 import * as utils from "@/components//shared/utils/utils";
+const qs = require("qs");
 
 interface IProps {
   event: IEvent;
@@ -16,6 +17,14 @@ interface IProps {
 const EventPage: NextPage<IProps> = ({ event }) => {
   function deleteEvent() {
     console.log("will delete");
+  }
+
+  if (!event) {
+    return (
+      <>
+        <h3>Nothing to see here</h3>
+      </>
+    );
   }
 
   return (
@@ -70,7 +79,20 @@ export async function getServerSideProps({
 }) {
   const { slug } = query;
 
-  const res = await fetch(`${API_URL}/events?slug=${slug}&populate=*`);
+  const qry = qs.stringify(
+    {
+      filters: {
+        slug: {
+          $eq: `${slug}`
+        }
+      }
+    },
+    {
+      encodeValuesOnly: true // mooi url
+    }
+  );
+
+  const res = await fetch(`${API_URL}/events?${qry}&populate=*`);
 
   const events: { data: IEvent[] } = await res.json();
 
