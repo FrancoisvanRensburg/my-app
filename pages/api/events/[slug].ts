@@ -17,7 +17,6 @@ export interface Events {
 }
 
 export default function getEvent(req: NextApiRequest, res: NextApiResponse<Events[]>) {
-  console.log("query", req.query);
   const evt = data.events.filter(evt => evt.slug === req.query.slug);
   if (req.method === "GET") {
     res.status(200).json(evt);

@@ -4,6 +4,7 @@ import { API_URL } from "@/config/index";
 import { IEvent } from "@/interfaces//event.interface";
 import EventItem from "@/components/EventItem";
 import Link from "next/link";
+const qs = require("qs");
 
 interface IProps {
   events: IEvent[] | null;
@@ -35,7 +36,20 @@ export default HomePage;
 
 // Kinda like use effect but only runs once when page mounts
 export async function getStaticProps() {
-  const res = await fetch(`${API_URL}/events?_sort=date:ASC&_limit=3&populate=*`);
+  const query = qs.stringify(
+    {
+      pagination: {
+        start: 0,
+        limit: 3
+      },
+      sort: ["date:asc"],
+      populate: "*"
+    },
+    {
+      encodeValuesOnly: true // prettify URL
+    }
+  );
+  const res = await fetch(`${API_URL}/events?${query}`);
   const events = await res.json();
 
   const resultObj = events.data;

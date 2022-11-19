@@ -1,13 +1,17 @@
 import { NextPage } from "next";
-import Layout from "@/components/Layout";
-import { useState } from "react";
-import { useRouter } from "next/router";
-import styles from "@/styles/Form.module.css";
-import Link from "next/link";
 import { API_URL } from "@/config/index";
-import { Simulate } from "react-dom/test-utils";
-import error = Simulate.error;
 import { IEvent } from "@/interfaces/event.interface";
+import Layout from "@/components/Layout";
+import Modal from "@/components/shared/Modal";
+import Link from "next/link";
+import styles from "@/styles/Form.module.css";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import * as utils from "@/components/shared/utils/utils";
+import Image from "next/image";
+import { FaImage } from "react-icons/fa";
+import ImageUpload from "@/components/shared/ImageUpload";
+const qs = require("qs");
 
 type formData = {
   name: string;
@@ -19,7 +23,12 @@ type formData = {
   description: string;
 };
 
-const AddEventPage: NextPage = () => {
+interface IProps {
+  event: IEvent;
+}
+
+const EditPage: NextPage<IProps> = ({ event }) => {
+  const [showModal, setShoeModal] = useState<boolean>(false);
   const [values, setValues] = useState<formData>({
     name: "",
     venue: "",
@@ -29,7 +38,17 @@ const AddEventPage: NextPage = () => {
     time: "",
     description: ""
   });
+  const [imagePreview, setImagePreview] = useState<any>(event.attributes.image);
   const router = useRouter();
+
+  useEffect(() => {
+    let newObj: any = {};
+    Object.keys(values).forEach(value => {
+      // @ts-ignore
+      newObj[value] = event.attributes[value] ?? "";
+    });
+    setValues({ ...newObj, date: utils.humanFormatDate(newObj.date) });
+  }, []);
 
   function handleInputChange(e: any) {
     const { name, value } = e.target;
@@ -52,8 +71,8 @@ const AddEventPage: NextPage = () => {
     };
 
     try {
-      const res = await fetch(`${API_URL}/events`, {
-        method: "POST",
+      const res = await fetch(`${API_URL}/events/${event.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
@@ -73,10 +92,19 @@ const AddEventPage: NextPage = () => {
     }
   }
 
+  async function imageUploaded(img: any) {
+    const res = await fetch(`${API_URL}/events/${event.id}?populate=*`);
+
+    const data: { data: IEvent } = await res.json();
+
+    setImagePreview(data.data.attributes.image);
+    setShoeModal(false);
+  }
+
   return (
     <Layout title={"Add new event"}>
       <Link href={"/events"}>Go back</Link>
-      <h1>Add event</h1>
+      <h1>Edit event</h1>
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.grid}>
           <div>
@@ -150,10 +178,48 @@ const AddEventPage: NextPage = () => {
             onChange={handleInputChange}
           />
         </div>
-        <input type={"submit"} value={"Add event"} className={"btn"} />
+        <input type={"submit"} value={"Edit event"} className={"btn"} />
       </form>
+
+      <h2>Event image</h2>
+      <Image
+        src={utils.getCloudinaryImage(imagePreview, "thumbnail") ?? "/images/event-default.png"}
+        width={234}
+        height={156}
+      />
+      <div>
+        <button className={"btn-secondary"} onClick={() => setShoeModal(true)}>
+          <FaImage /> Set image
+        </button>
+      </div>
+      {/*{showModal && (*/}
+      <Modal show={showModal} onClose={() => setShoeModal(false)}>
+        <div>Image upload</div>
+        <ImageUpload imageUploaded={imageUploaded} eventId={event.id} />
+      </Modal>
+      {/*)}*/}
     </Layout>
   );
 };
 
-export default AddEventPage;
+export default EditPage;
+
+export async function getServerSideProps({
+  params
+}: {
+  params: {
+    id: string;
+  };
+}) {
+  const { id } = params;
+
+  const res = await fetch(`${API_URL}/events/${id}?populate=*`);
+
+  const events: { data: IEvent[] } = await res.json();
+
+  return {
+    props: {
+      event: { ...events.data }
+    }
+  };
+}

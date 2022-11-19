@@ -8,6 +8,7 @@ import Image from "next/image";
 import { FaPencilAlt, FaTimes } from "react-icons/fa";
 import DateTime from "@/components/shared/dateTime";
 import * as utils from "@/components//shared/utils/utils";
+import { useRouter } from "next/router";
 const qs = require("qs");
 
 interface IProps {
@@ -15,7 +16,25 @@ interface IProps {
 }
 
 const EventPage: NextPage<IProps> = ({ event }) => {
-  function deleteEvent() {
+  const router = useRouter();
+  async function deleteEvent() {
+    if (confirm("Are you sure?")) {
+      try {
+        const res = await fetch(`${API_URL}/events/${event.id}`, {
+          method: "DELETE"
+        });
+
+        if (res.ok) {
+          await router.push("/events");
+        }
+        if (!res.ok) {
+          console.log("all not good in the hood");
+        }
+      } catch (e) {
+        console.error("Error caught", e);
+      }
+    }
+
     console.log("will delete");
   }
 

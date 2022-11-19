@@ -11,6 +11,7 @@ interface IProps {
 }
 
 const EventItem: NextPage<IProps> = ({ event }) => {
+  console.log(event);
   return (
     <div className={styles.event}>
       <div className={styles.img}>

@@ -6,7 +6,7 @@ function getCloudinaryImage(
 ): string | undefined {
   let url: string | undefined = undefined;
 
-  url = image?.data.attributes.formats[format].url;
+  url = image?.data?.attributes.formats[format].url;
 
   return url;
 }
